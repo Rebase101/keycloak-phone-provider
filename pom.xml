@@ -13,8 +13,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
-        <version.keycloak>19.0.1</version.keycloak>
-        <docker.image.name>coopersoft/keycloak</docker.image.name>
+        <version.keycloak>20.0.1</version.keycloak>
+        <docker.image.name>himiriel/keycloak</docker.image.name>
 
         <version.project.parent>2.1.2</version.project.parent>
     </properties>
@@ -22,14 +22,7 @@
     <modules>
         <module>keycloak-phone-provider</module>
         <module>keycloak-phone-provider.resources</module>
-        <module>keycloak-sms-provider-aws-sns</module>
         <module>keycloak-sms-provider-dummy</module>
-        <module>keycloak-sms-provider-totalvoice</module>
-        <module>keycloak-sms-provider-twilio</module>
-        <module>keycloak-sms-provider-cloopen</module>
-        <module>keycloak-sms-provider-yunxin</module>
-        <module>keycloak-sms-provider-aliyun</module>
-        <module>keycloak-sms-provider-tencent</module>
 
     </modules>
 
