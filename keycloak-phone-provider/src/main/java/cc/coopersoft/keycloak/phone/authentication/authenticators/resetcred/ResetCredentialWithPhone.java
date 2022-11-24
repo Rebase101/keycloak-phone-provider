@@ -12,7 +12,7 @@ import org.keycloak.authentication.AuthenticationFlowContext;
 import org.keycloak.authentication.AuthenticationFlowError;
 import org.keycloak.authentication.Authenticator;
 import org.keycloak.authentication.AuthenticatorFactory;
-import org.keycloak.authentication.actiontoken.DefaultActionTokenKey;
+import org.keycloak.authentication.actiontoken.DefaultActionToken;
 import org.keycloak.authentication.authenticators.broker.AbstractIdpAuthenticator;
 import org.keycloak.authentication.authenticators.browser.AbstractUsernameFormAuthenticator;
 import org.keycloak.events.Details;
@@ -54,7 +54,7 @@ public class ResetCredentialWithPhone implements Authenticator, AuthenticatorFac
       return;
     }
 
-    String actionTokenUserId = context.getAuthenticationSession().getAuthNote(DefaultActionTokenKey.ACTION_TOKEN_USER_ID);
+    String actionTokenUserId = context.getAuthenticationSession().getAuthNote(DefaultActionToken.ACTION_TOKEN_USER_ID);
     if (actionTokenUserId != null) {
       UserModel existingUser = context.getSession().users().getUserById(context.getRealm(), actionTokenUserId);
 
