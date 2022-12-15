@@ -44,6 +44,7 @@ public class RegistrationPhoneUserCreation implements FormActionFactory, FormAct
   public static final String CONFIG_INPUT_NAME="isInputName";
 
   public static final String CONFIG_INPUT_EMAIL="isInputEmail";
+  public static final String CONFIG_INPUT_PHONE="isInputPhone";
   private static final AuthenticationExecutionModel.Requirement[] REQUIREMENT_CHOICES = {
       AuthenticationExecutionModel.Requirement.REQUIRED, AuthenticationExecutionModel.Requirement.DISABLED};
 
@@ -88,6 +89,12 @@ public class RegistrationPhoneUserCreation implements FormActionFactory, FormAct
         .type(BOOLEAN_TYPE)
         .label("Input Email")
         .helpText("Allow users input e-mail, if Realm set email as username, this is invalid!")
+        .defaultValue(true)
+        .add()
+        .property().name(CONFIG_INPUT_PHONE)
+        .type(BOOLEAN_TYPE)
+        .label("Input Phone")
+        .helpText("Allow users input phone")
         .defaultValue(true)
         .add()
         .build();
@@ -157,6 +164,11 @@ public class RegistrationPhoneUserCreation implements FormActionFactory, FormAct
         !"true".equalsIgnoreCase(context.getAuthenticatorConfig().getConfig()
         .getOrDefault(CONFIG_INPUT_NAME,"true"));
   }
+  private boolean isHidePhone(FormContext context){
+    return context.getAuthenticatorConfig() == null ||
+        !"true".equalsIgnoreCase(context.getAuthenticatorConfig().getConfig()
+        .getOrDefault(CONFIG_INPUT_PHONE,"true"));
+  }
 
   private boolean isHideEmail(FormContext context){
     if (context.getAuthenticatorConfig() == null ||
@@ -175,7 +187,9 @@ public class RegistrationPhoneUserCreation implements FormActionFactory, FormAct
   @Override
   public void buildPage(FormContext context, LoginFormsProvider form) {
 
-    form.setAttribute("phoneNumberRequired", true);
+    if(!isHidePhone(context)) {
+      form.setAttribute("phoneNumberRequired", true);
+    }
 
     if (isPhoneNumberAsUsername(context)){
       form.setAttribute("registrationPhoneNumberAsUsername", true);
@@ -197,18 +211,17 @@ public class RegistrationPhoneUserCreation implements FormActionFactory, FormAct
 
     context.getEvent().detail(Details.REGISTER_METHOD, "form");
 
-
     KeycloakSession session = context.getSession();
     UserProfileProvider profileProvider = session.getProvider(UserProfileProvider.class);
     UserProfile profile = profileProvider.create(UserProfileContext.REGISTRATION_USER_CREATION, formData);
 
     String username = profile.getAttributes().getFirstValue(UserModel.USERNAME);
-    String phoneNumber = formData.getFirst(FIELD_PHONE_NUMBER);
 
     context.getEvent().detail(Details.USERNAME, username);
 
     boolean hideName = isHideName(context);
     boolean hideEmail = isHideEmail(context);
+    boolean hidePhone = isHidePhone(context);
 
     if (!hideName){
       String firstName = profile.getAttributes().getFirstValue(UserModel.FIRST_NAME);
@@ -225,25 +238,29 @@ public class RegistrationPhoneUserCreation implements FormActionFactory, FormAct
       }
     }
 
-    context.getEvent().detail(FIELD_PHONE_NUMBER, phoneNumber);
-
-    if (isPhoneNumberAsUsername(context)){
-      context.getEvent().detail(Details.USERNAME, phoneNumber);
-    }
-
     boolean success = true;
     List<FormMessage> errors = new ArrayList<>();
-    if (Validation.isBlank(phoneNumber)) {
-      errors.add(new FormMessage(FIELD_PHONE_NUMBER, SupportPhonePages.Errors.MISSING.message()));
-      context.error(Errors.INVALID_REGISTRATION);
-      context.validationError(formData, errors);
-      success = false;
-    } else if (!Utils.isDuplicatePhoneAllowed(context.getSession()) &&
-        Utils.findUserByPhone(context.getSession().users(), context.getRealm(), phoneNumber).isPresent()) {
-      context.error(Errors.INVALID_REGISTRATION);
-      errors.add(new FormMessage(FIELD_PHONE_NUMBER, SupportPhonePages.Errors.EXISTS.message()));
-      context.validationError(formData, errors);
-      success = false;
+    if (!hidePhone) {
+      String phoneNumber = formData.getFirst(FIELD_PHONE_NUMBER);
+
+      context.getEvent().detail(FIELD_PHONE_NUMBER, phoneNumber);
+
+      if (isPhoneNumberAsUsername(context)){
+        context.getEvent().detail(Details.USERNAME, phoneNumber);
+      }
+
+      if(Validation.isBlank(phoneNumber)) {
+        errors.add(new FormMessage(FIELD_PHONE_NUMBER, SupportPhonePages.Errors.MISSING.message()));
+        context.error(Errors.INVALID_REGISTRATION);
+        context.validationError(formData, errors);
+        success = false;
+      } else if (!Utils.isDuplicatePhoneAllowed(context.getSession()) &&
+              Utils.findUserByPhone(context.getSession().users(), context.getRealm(), phoneNumber).isPresent()) {
+        context.error(Errors.INVALID_REGISTRATION);
+        errors.add(new FormMessage(FIELD_PHONE_NUMBER, SupportPhonePages.Errors.EXISTS.message()));
+        context.validationError(formData, errors);
+        success = false;
+      }
     }
 
     try {
